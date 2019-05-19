@@ -12,7 +12,7 @@ public static class EntryPoint
 
         bool allSetUp = setUpPedsAndVehicles(ref drivers, ref motorcadeVehicles);
 
-        if(allSetUp)
+        if (allSetUp)
         {
             // Makes the first vehilce tail the player
             followTheVehice(motorcadeVehicles[0], Game.LocalPlayer.Character.CurrentVehicle);
@@ -22,11 +22,33 @@ public static class EntryPoint
             {
                 followTheVehice(motorcadeVehicles[i - 1], motorcadeVehicles[i]);
             }
-        } else
+        }
+        else
         {
             Game.DisplayNotification("Setting up vehicles and peds failed.");
         }
+        while (true)
+        {
+            if (Albo1125.Common.CommonLibrary.ExtensionMethods.IsKeyDownRightNowComputerCheck(PropertiesInitializer.motorcadeModifierKey) &&
+                Albo1125.Common.CommonLibrary.ExtensionMethods.IsKeyDownRightNowComputerCheck(PropertiesInitializer.motorcadeEndKey))
+            {
+                doCleanUp(ref motorcadeVehicles, ref drivers);
+                Game.DisplayNotification("Motorcade is cleaned up!");
+                break;
+            }
+        }
 
+    }
+
+    private static void doCleanUp(ref Vehicle[] motorcadeVehicles, ref Ped[] drivers)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            motorcadeVehicles[i].Delete();
+            drivers[i].Delete();
+            motorcadeVehicles[i] = null;
+            drivers[i] = null;
+        }
     }
 
     public static bool setUpPedsAndVehicles(ref Ped[] drivers, ref Vehicle[] motorcadeVehicles)
@@ -152,8 +174,6 @@ public static class EntryPoint
                     followingDriver.Tasks.DriveToPosition(followed.GetOffsetPosition(Vector3.RelativeBack * 3f), speed, VehicleDrivingFlags.IgnorePathFinding);
                     GameFiber.Sleep(60);
 
-                    if(Albo1125.Common.CommonLibrary.ExtensionMethods.IsKeyDownRightNowComputerCheck(PropertiesInitializer.motorcadeModifierKey))
-
                     if (!isMotorcadeInProgress)
                     {
                         break;
@@ -185,7 +205,6 @@ public static class EntryPoint
                             speed = 17f;
                         }
                     }
-
                 }
                 if (blip.Exists()) { blip.Delete(); }
             }
