@@ -1,8 +1,7 @@
 ﻿using Rage;
-using System.Drawing;
+using System.Windows.Forms;
 
 [assembly: Rage.Attributes.Plugin("Motorcade", Description = "Spawns a motorcade and makes them follow the player.")]
-
 public static class EntryPoint
 {
     public static bool isMotorcadeInProgress = false;
@@ -10,9 +9,29 @@ public static class EntryPoint
     {
         Ped[] drivers = new Ped[6];
         Vehicle[] motorcadeVehicles = new Vehicle[6];
-        //Vehicle suv1, suv2, sedan1, sedan2, stretch, riot = null;
 
-        float[] vehicleSpanPositionConsts = { -20f, -35f, -50f, -70f, -85f, -100f };
+        bool allSetUp = setUpPedsAndVehicles(ref drivers, ref motorcadeVehicles);
+
+        if(allSetUp)
+        {
+            // Makes the first vehilce tail the player
+            followTheVehice(motorcadeVehicles[0], Game.LocalPlayer.Character.CurrentVehicle);
+
+            // Do the same for all remaining vehicles. All vehicles tail their predecessor.
+            for (int i = 1; i < 6; i++)
+            {
+                followTheVehice(motorcadeVehicles[i - 1], motorcadeVehicles[i]);
+            }
+        } else
+        {
+            Game.DisplayNotification("Setting up vehicles and peds failed.");
+        }
+
+    }
+
+    public static bool setUpPedsAndVehicles(ref Ped[] drivers, ref Vehicle[] motorcadeVehicles)
+    {
+        float[] vehicleSpanPositionConsts = { 20f, 35f, 50f, 70f, 85f, 100f };
         string[] vehicleModels = { "FBI2", "FBI2", "STRETCH", "FBI", "FBI", "RIOT" };
 
         // Get a position 15 meters in front of the player.
@@ -55,7 +74,7 @@ public static class EntryPoint
             {
                 // Inform the user.
                 Game.DisplayNotification("The vehicle was killed or deleted prematurely.");
-                return;
+                return false;
             }
         }
 
@@ -65,7 +84,7 @@ public static class EntryPoint
             {
                 // Inform the user.
                 Game.DisplayNotification("One of the drivers was killed or deleted prematurely.");
-                return;
+                return false;
             }
         }
 
@@ -84,20 +103,11 @@ public static class EntryPoint
                 && drivers[2].IsInVehicle(motorcadeVehicles[2], false) && drivers[3].IsInVehicle(motorcadeVehicles[3], false)
                 && drivers[4].IsInVehicle(motorcadeVehicles[4], false))
             {
-                // Stop waiting.
-                break;
+                // Stop waiting. Call execution success.
+                return true;
             }
 
             GameFiber.Yield();
-        }
-
-        // Makes the first vehilce tail the player
-        followTheVehice(motorcadeVehicles[0], Game.LocalPlayer.Character.CurrentVehicle);
-
-        // Do the same for all remaining vehicles. All vehicles tail their predecessor.
-        for (int i = 1; i < 6; i++)
-        {
-            followTheVehice(motorcadeVehicles[i - 1], motorcadeVehicles[i]);
         }
     }
 
@@ -113,7 +123,7 @@ public static class EntryPoint
                 followed.ShouldVehiclesYieldToThisVehicle = true;
                 followed.IsSirenOn = true;
 
-                Game.LogTrivial("Following");
+                Game.LogTrivial("Motorcade starting...");
                 Ped playerPed = Game.LocalPlayer.Character;
                 if (!playerPed.IsInAnyVehicle(false))
                 {
@@ -141,6 +151,8 @@ public static class EntryPoint
 
                     followingDriver.Tasks.DriveToPosition(followed.GetOffsetPosition(Vector3.RelativeBack * 3f), speed, VehicleDrivingFlags.IgnorePathFinding);
                     GameFiber.Sleep(60);
+
+                    if(Albo1125.Common.CommonLibrary.ExtensionMethods.IsKeyDownRightNowComputerCheck(PropertiesInitializer.motorcadeModifierKey))
 
                     if (!isMotorcadeInProgress)
                     {
@@ -185,5 +197,47 @@ public static class EntryPoint
                 isMotorcadeInProgress = false;
             }
         });
+    }
+
+    internal class PropertiesInitializer
+    {
+        private static KeysConverter kc = new KeysConverter();
+        public static Keys motorcadeEndKey { get; set; }
+        public static Keys motorcadeModifierKey { get; set; }
+        private static void loadValuesFromIniFile()
+        {
+
+            try
+            {
+                motorcadeModifierKey = (Keys)kc.ConvertFromString(getMotorcadeModifierKey());
+                motorcadeEndKey = (Keys)kc.ConvertFromString(getMotorcadeEndKey());
+            }
+            catch
+            {
+                motorcadeModifierKey = Keys.LControlKey;
+                motorcadeEndKey = Keys.D0;
+            }
+        }
+
+        private static string getMotorcadeModifierKey()
+        {
+            InitializationFile ini = initialiseFile();
+            string key = ini.ReadString("Keybindings", "MotorcadeModifierKey", "LControlKey");
+            return key;
+        }
+
+        private static string getMotorcadeEndKey()
+        {
+            InitializationFile ini = initialiseFile();
+            string key = ini.ReadString("Keybindings", "MotorcadeEndKey", "D0");
+            return key;
+        }
+
+        public static InitializationFile initialiseFile()
+        {
+            InitializationFile ini = new InitializationFile("plugins/LSPDFR/Motorcade.ini");
+            ini.Create();
+            return ini;
+        }
     }
 }
