@@ -20,7 +20,7 @@ public static class EntryPoint
             // Do the same for all remaining vehicles. All vehicles tail their predecessor.
             for (int i = 0; i < 6; i++)
             {
-                followTheLeader(motorcadeVehicles[i], 2f + i*12f);
+                followTheLeader(motorcadeVehicles[i], 2f + i * 12f);
             }
         }
         else
@@ -55,7 +55,7 @@ public static class EntryPoint
         string[] vehicleModels = { "WASHINGTON", "WASHINGTON", "FBI2", "EMPEROR", "FBI2", "FBI2" };
 
         // Get a position 15 meters in front of the player.
-        Vector3[] vehicleSpanPositions = new Vector3[6];// Game.LocalPlayer.Character.GetOffsetPositionFront(20f);
+        Vector3[] vehicleSpanPositions = new Vector3[6];
         Vector3[] driverSpanPositions = new Vector3[6];
 
         // Set driver and vehicle spawnning positions
@@ -86,14 +86,13 @@ public static class EntryPoint
         GameFiber.Wait(3000);
 
         // Since we've yielded, letting the game and other plugins run, our character and vehicle may have been deleted in the mean time.
-        // The character may also have died, or the vehicle may have blown up.
-        // Let's verify that's not the case.
+        // The character may also have died, or the vehicle may have blown up. Let's verify that's not the case.
         foreach (Vehicle vehicle in motorcadeVehicles)
         {
             if (!vehicle.Exists())
             {
                 // Inform the user.
-                Game.DisplayNotification("The vehicle was killed or deleted prematurely.");
+                Game.DisplayNotification("One of the vehicles was killed or deleted prematurely.");
                 return false;
             }
         }
@@ -153,20 +152,12 @@ public static class EntryPoint
                     return;
                 }
 
-                if (following == null)
-                {
-                    Game.DisplayNotification("The vehicle following was lost!");
-                    isMotorcadeInProgress = false;
-                    return;
-                }
-
                 Ped followingDriver = following.Driver;
 
                 Blip blip = followingDriver.AttachBlip();
                 blip.Flash(500, -1);
                 blip.Color = System.Drawing.Color.Aqua;
                 followingDriver.Tasks.DriveToPosition(leader.GetOffsetPosition(Vector3.RelativeBack * distance), 9f, VehicleDrivingFlags.FollowTraffic | VehicleDrivingFlags.YieldToCrossingPedestrians);
-                //GameFiber.Sleep(100);
                 float speed = 13f;
                 while (true)
                 {
@@ -178,7 +169,7 @@ public static class EntryPoint
                     {
                         break;
                     }
-                    // Break if any one of the drivers gets down from their vehicle
+                    // Break if the player gets fown from the vehicle
                     if (!playerPed.IsInVehicle(leader, false))
                     {
                         break;
@@ -208,8 +199,9 @@ public static class EntryPoint
                 }
                 if (blip.Exists()) { blip.Delete(); }
             }
-            catch
+            catch (System.Exception ex)
             {
+                Game.LogTrivial("An exception occured " + ex.Data);
             }
             finally
             {
