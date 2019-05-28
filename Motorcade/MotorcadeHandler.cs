@@ -16,7 +16,7 @@ namespace MotorCade
             bool allSetUp = setUpPedsAndVehicles(drivers, motorcadeVehicles);
 
             //Set up the police chopper
-            //AirGuard.setUpPoliceHelicopter();
+            AirGuard.setUpPoliceHelicopter();
 
             if (allSetUp)
             {
