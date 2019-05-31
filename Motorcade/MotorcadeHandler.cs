@@ -55,7 +55,7 @@ namespace MotorCade
         public static bool setUpPedsAndVehicles(Ped[] drivers, Vehicle[] motorcadeVehicles)
         {
             float[] vehicleSpanPositionConsts = { -20f, -35f, -50f, -70f, -85f, -100f };
-            string[] vehicleModels = { "WASHINGTON", "WASHINGTON", "FBI2", "EMPEROR", "FBI2", "FBI2" };
+            string[] vehicleModels = { "WASHINGTON", "WASHINGTON", "CAVALCADE2", "EMPEROR", "FBI2", "FBI2" };
 
             // Get a position 15 meters in front of the player.
             Vector3[] vehicleSpanPositions = new Vector3[6];
